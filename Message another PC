@@ -1,0 +1,9 @@
+#Message another PC
+
+Import-module Activedirectory #Imports the AD module
+
+$name = read-host "Enter Computer Name "  #enter a PC name
+$msg = read-host "Enter Message "  #enter a message that will pop up on that PC's screen
+Invoke-WmiMethod -Path Win32_Process -Name Create -ArgumentList "msg * $msg" -ComputerName $name
+
+#Amanjot Karir 24/10/17
