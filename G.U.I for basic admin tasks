@@ -29,16 +29,16 @@
       	           ----------------Main Menu----------------
                    |                                       |
                    |                                       |
-            		   |        1 = Search Specific User       |
+                   |        1 = Search Specific User       |
                    |        2 = Search All Users           |
                    |        3 = Unlock Account             |
-            		   |        4 = Script Settings		         |      #Main menu, this is what they will see on launch
-	    		         |        5 = Import Exchange Module     |
-	   		           |        6 = Run Exchange Report        |
-	   		           |        7 = Message a PC               |	
-	   		           |        8 = Change Domain Controller   |
-	   		           |        9 = CD C:\                     |
-            		   |        0 = Quit                       |
+                   |        4 = Script Settings		   |      #Main menu, this is what they will see on launch
+	           |        5 = Import Exchange Module     |
+	           |        6 = Run Exchange Report        |
+	           |        7 = Message a PC               |	
+	           |        8 = Change Domain Controller   |
+	           |        9 = CD C:\                     |
+                   |        0 = Quit                       |
                    |                                       |
                    |---------------------------------------|"
      
