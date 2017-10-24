@@ -1,5 +1,8 @@
 
 #Put together by Amanjot Karir 24/10/17
+#This is a script that combines the exchange reports, message pop-ups and change DC.
+#It also allows you to unlock user accounts, search information about users, navigate through DCs and do other cool stuff
+#All in one place.
 
 #Below are the parameters that will be used in the script
 
