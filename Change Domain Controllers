@@ -1,0 +1,13 @@
+New-PSDrive ` #This creates a temp drive 
+    –Name [insertanamehere] ` #This is the name of the tempdrive
+    –PSProvider ActiveDirectory `
+    –Server "test.test.com" ` #insert domain address
+    –Credential (Get-Credential "Admin\test") ` #insert login username 
+    –Root "//RootDSE/" `
+    -Scope Global
+
+CD [insertnamehere] #Point it to the temp drive you created above
+get-addomain
+
+#You have now changed domain controllers in powershell 
+#Amanjot Karir 24/10/17
