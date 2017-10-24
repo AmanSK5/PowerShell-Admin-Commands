@@ -1,0 +1,16 @@
+$UserCredential = Get-Credential #This will ask you for your login. Simply enter in your normal exchange login details. 
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri [INSERT_EXCHANGE_SERVER_ADDRESS]/PowerShell/ -Authentication Kerberos -Credential $UserCredential
+Import-PSSession $Session
+
+#Now you have exchange ready in your powershell window
+
+#You can now generate reports on the mailboxes within exchange. There is no limit on how many mailboxes you can have.
+
+Get-MailboxDatabase [MAILBOX_NAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+Get-MailboxDatabase [MAILBOX_NAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+Get-MailboxDatabase [MAILBOX_NAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+
+Get-Mailbox -ResultSize Unlimited | Get-Mailboxstatistics | Select DisplayName, Database, TotalItemSize,@{expression={$_.totalitemsize.value.ToMB()};label="Size(MB)"} | Export-CSV C:\Mailstorage.csv -NoTypeInformation
+#This generates a .csv file of every users mailbox. This allows you to see if anyone is reaching their limit or if a support mailbox is reaching its limit. 
+
+#Amanjot Karir 24/10/17
