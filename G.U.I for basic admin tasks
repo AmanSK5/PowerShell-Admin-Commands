@@ -1,0 +1,205 @@
+
+#Put together by Amanjot Karir 24/10/17
+
+#Below are the parameters that will be used in the script
+
+    $waitDuration = 2
+    $end=0
+    $pshost = get-host
+    $pswindow = $pshost.ui.rawui
+    $newsize = $pswindow.buffersize
+    $newsize.height = 3000
+    $newsize.width = 240
+    $pswindow.buffersize = $newsize
+    $newsize = $pswindow.windowsize
+    $newsize.height = 50
+    $newsize.width = 80
+    $pswindow.windowsize = $newsize
+
+
+   
+    :OuterLoop do
+    {
+    Do {
+     
+    clear
+    
+    Write-Output "
+     
+      	           ----------------Main Menu----------------
+                   |                                       |
+                   |                                       |
+            		   |        1 = Search Specific User       |
+                   |        2 = Search All Users           |
+                   |        3 = Unlock Account             |
+            		   |        4 = Script Settings		         |      #Main menu, this is what they will see on launch
+	    		         |        5 = Import Exchange Module     |
+	   		           |        6 = Run Exchange Report        |
+	   		           |        7 = Message a PC               |	
+	   		           |        8 = Change Domain Controller   |
+	   		           |        9 = CD C:\                     |
+            		   |        0 = Quit                       |
+                   |                                       |
+                   |---------------------------------------|"
+     
+       
+	
+	$m1Choice = read-host -prompt "Select an Option and press Enter"
+       } until($m1Choice -eq "1" -or $m1Choice -eq "2" -or $m1Choice -eq "3" -or $m1Choice -eq "4" -or $m1Choice -eq "5" -or $m1Choice -eq "6" -or $m1Choice -eq "7" -or $m1Choice -eq "8" -or $m1Choice -eq "9" -or $m1Choice -eq "0")
+     
+       Switch($m1Choice){
+     
+        "1" {
+          	clear
+         	 $userName = read-host -prompt "Enter Username to search"
+         	 $c = Get-ADUser -Identity $userName -Properties * | select Name,DisplayName,SamAccountName,Mail,Enabled,LastLogonDate,LastBadPasswordAttempt,DistinguishedName,SID,@{n='MemberOf';e={$_.MemberOf -join '; '}}
+         	 echo $c
+         	 $prompt = read-host -prompt "Do you wish to save to file? (Y/N)"		#Option one query one user
+        	 if ($prompt -eq 'y')
+                   {
+            		$c | export-csv "$fPath\ADUser-Export_$userName.csv"
+          		Write-Output "File saved as: $fPath\ADUser-Export_$userName.csv"
+          		Start-Sleep -s $waitDuration
+                   }
+             
+            }
+     
+        "2" {
+              clear
+              Write-Output "Exporting AD Users to CSV"
+              Get-ADUser -Filter * -Properties * | select Name,DisplayName,SamAccountName,Mail,Enabled,LastLogonDate,LastBadPasswordAttempt,DistinguishedName,SID,@{n='MemberOf';e={$_.MemberOf -join '; '}} | export-csv "$fPath\FullAD-Export.csv"
+              Write-Output "File saved as: $fPath\FullAD-Export.csv"
+              Start-Sleep -s $waitDuration					#Searches AD for all users
+     
+            }
+     
+     
+     
+        "3" {
+                $userName = read-host -prompt "Enter Username to Unlock"
+                Unlock-ADAccount -Identity $userName
+                Write-Output "User Account $userName has been unlocked!"
+                Start-Sleep -s $waitDuration				#Unlockes an AD account 
+            }
+     
+       
+        "4" {
+	  $setExit=0
+           Do{
+            Do{
+             clear
+             Write-Output "-------------- Settings ------------------
+                     
+            1 = Set Domain
+            2 = Set Output File Path
+            3 = Main Menu
+                            "          
+            Write-host "  Selected Domain:"$domain -fore "Yellow" -back "black"
+            Write-host "  File Path:"$fPath -fore "Yellow" -back "black"
+            Write-host "------------------------------------------"
+            
+             $m2Choice = read-host -prompt "Select a setup option and press Enter"
+             } until($m2Choice -eq "1" -or $m2Choice -eq "2" -or $m2Choice -eq "3")
+           
+             Switch($m2Choice){									#Settings you can manually change. You can change the domain, the file path of where you save the files from the first and second option. 
+     
+              "1" {
+                      $domain = read-host -prompt "Enter Domain (ie. contoso.local) "
+                  }
+     
+              "2" {
+                      $fPath = read-host -prompt "Enter File Path Do not include trailing '\' (ie. C:\output) "
+                  }
+                         
+              "3" {
+                    $setExit=1
+                  }        
+           
+           
+              }
+           } while($setExit -ne 1)
+        }
+           
+     
+           "5" {
+                $UserCredential = Get-Credential
+		$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri [#INSET DOMAIN ADDRESS HERE]/PowerShell/ -Authentication Kerberos -Credential $UserCredential
+		Import-PSSession $Session
+		Start-Sleep -s $waitDuration		#import Exchange module 
+
+
+                Write-Output "ExchangeImported!"
+		Start-Sleep -s $waitDuration
+                
+            }   
+	
+	
+		"6" {
+			
+		clear	
+		Get-MailboxDatabase [BOXNAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+		Get-MailboxDatabase [BOXNAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+		Get-MailboxDatabase [BOXNAME] –Status | select Name, AvailableNewMailboxSpace, DatabaseSize
+		Write-Host -NoNewLine 'Press any key to continue...';
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');		#Generate report on mailboxe sizes. You must run option 5 before 6. You can have as many mailboxes as you want. 
+
+		}
+
+
+		"7" {
+
+		$name = read-host "Enter Computer Name "
+		$msg = read-host "Enter Message "
+		Invoke-WmiMethod -Path Win32_Process -Name Create -ArgumentList "msg * $msg" -ComputerName $name
+		Start-Sleep -s $waitDuration			#Message a computer on the network
+
+		}
+
+
+		"8" {
+
+		New-PSDrive ` #Create a temp drive
+   			 –Name [INSERTNAME] ` #Name the drive
+  			 –PSProvider ActiveDirectory `
+  			 –Server "[TEST.TEST.COM]" ` #insert domain address here
+   			 –Credential (Get-Credential "[ADMIN\TEST]") ` #Put in admin login credential
+    		         –Root "//RootDSE/" `
+    			 -Scope Global				
+
+		CD Internal:
+		get-addomain
+
+		Write-Host -NoNewLine 'Press any key to continue...';
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');  #No time out you have to press a key on the keyboard to continue
+
+		}
+
+
+		"9" {
+		
+		clear				#Set path to new directory
+		cd C:\
+
+		Write-Host -NoNewLine 'Press any key to continue...';
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		
+		}
+
+        "99" {
+                Write-Output "Exiting"
+             
+                #Delete temp variables used
+
+                Remove-Variable fPath		
+                Remove-Variable userName
+                Remove-Variable domain
+                Remove-Variable end
+                Remove-Variable setexit
+                Remove-Variable c
+                $end = 1
+                break OuterLoop
+            }
+       }
+     
+   
+    } while ($end -ne 1)
