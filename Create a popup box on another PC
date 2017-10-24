@@ -1,5 +1,0 @@
-$name = read-host "Enter Computer Name "
-$msg = read-host "Enter Message "
-Invoke-WmiMethod -Path Win32_Process -Name Create -ArgumentList "msg * $msg" -ComputerName $name
-
-#Amanjot  Karir 24/10/17
