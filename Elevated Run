@@ -1,0 +1,20 @@
+param([switch]$Elevated)
+
+function Admin {
+  $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+  $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+}
+
+if ((Admin) -eq $false)  {
+    if ($elevated) 
+    {
+        # If it fails to run as admin, it ends here
+    } 
+    else {
+        Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
+}
+
+exit
+}
+
+'Now running as admin =]'
