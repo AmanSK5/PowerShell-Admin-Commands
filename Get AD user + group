@@ -1,6 +1,6 @@
 #Script for getting AD users and their groups
 #Make sure the PC you are running this on has the RSAT Admin tools installed so that you can invoke the AD module
-#Aman
+#Amanjot Karir 21/11/19
 
 Import-Module ActiveDirectory
 
