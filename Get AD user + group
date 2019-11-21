@@ -1,0 +1,74 @@
+#Script for getting AD users and their groups
+#Make sure the PC you are running this on has the RSAT Admin tools installed so that you can invoke the AD module
+#Aman
+
+Import-Module ActiveDirectory
+
+$report = Get-UserGroupMembershipRecursive USER1, USER2, USER3 -verbose
+
+function Get-UserGroupMembershipRecursive {
+[CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [String[]]$UserName
+    )
+    begin {
+    
+        $ADGroupCache = @{}
+        $UserGroups = @{}
+        $OutObject = @()
+
+        function __findPath ([string]$currentGroup, [string]$comment) {
+            Write-Verbose "Processing group: $currentGroup"        
+            if (!$UserGroups.ContainsKey($currentGroup)) {                
+                $groupObject = if ($ADGroupCache.ContainsKey($currentGroup)) {
+                    Write-Verbose "Found group in cache: $currentGroup"
+                    $ADGroupCache[$currentGroup].Psobject.Copy()
+                } else {
+                    Write-Verbose "Group: $currentGroup is not presented in cache. Retrieve and cache."
+                    $g = Get-ADGroup -Identity $currentGroup -Property objectclass,sid,whenchanged,whencreated,samaccountname,displayname,enabled,distinguishedname,memberof
+                   
+                    $ADGroupCache.Add($g.DistinguishedName, $g)
+                    $g
+                }
+                
+                $c = $comment + "->" + $groupObject.SamAccountName
+                
+                $UserGroups.Add($c, $groupObject)
+                                
+                Write-Verbose "Membership Path:  $c"
+                foreach ($p in $groupObject.MemberOf) {
+                       __findPath $p $c
+                }
+            } else {Write-Verbose "Closed walk or duplicate on '$currentGroup'. Skipping."}
+        }
+    }
+    process {
+        foreach ($user in $UserName) {
+            Write-Verbose "========== $user =========="
+          
+            $UserObject = Get-ADUser -Identity $user -Property objectclass,sid,whenchanged,whencreated,samaccountname,displayname,enabled,distinguishedname,memberof
+            $UserObject.MemberOf | ForEach-Object {__findPath $_ $UserObject.SamAccountName}
+}
+            foreach($g in $UserGroups.GetEnumerator())
+            {
+                $OutObject += [pscustomobject]@{
+                                    
+                    InheritancePath = $g.key;
+                    MemberOf = $g.value.SamAccountName;
+                    WhenChanged = $g.value.WhenChanged;
+                    WhenCreated = $g.value.WhenCreated;
+                }
+            }
+            $OutObject | Sort-Object -Property UserName,InheritancePath,MemberOf | Out-Gridview -PassThru |
+            $UserGroups.Clear()
+
+            
+        }
+
+    }
+
+   
+ $report | Export-Csv -Path "C:\OU_Permissions.csv" -NoTypeInformation 
+
+    
